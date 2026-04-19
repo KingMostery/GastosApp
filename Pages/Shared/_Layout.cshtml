@@ -5,19 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - GastosApp</title>
     <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/GastosApp.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <header class="app-topbar">
+        <div class="app-shell topbar-content">
+            <a class="brand" asp-area="" asp-page="/Index">
+                <span class="brand-dot">GA</span>
+                <span>GastosApp</span>
+            </a>
+
+            <nav class="topbar-nav">
+                <a class="topbar-link" asp-area="" asp-page="/Index">Inicio</a>
+                <a class="topbar-link" asp-area="" asp-page="/Privacy">Privacidad</a>
+            </nav>
+
+            <partial name="_LoginPartial" />
+        </div>
+    </header>
+
+    <div class="app-shell">
+        <main role="main" class="app-main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
+    <footer class="footer-shell">
+        <div class="app-shell">
             &copy; 2026 - GastosApp - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
