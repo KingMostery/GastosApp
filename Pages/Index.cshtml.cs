@@ -12,8 +12,13 @@ public class IndexModel : PageModel
         _logger = logger;
     }
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToPage("/Privacy");
+        }
 
+        return Page();
     }
 }

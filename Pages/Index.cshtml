@@ -1,10 +1,64 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "GastosApp";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<section class="relative min-h-[calc(100vh-72px)] overflow-hidden bg-[#f7f6f3] px-6 py-16 text-[#1f1f1f] sm:px-10 lg:px-16">
+    <div class="pointer-events-none absolute -left-24 top-8 h-56 w-56 rounded-full bg-[#dcd6cd]/60 blur-3xl"></div>
+    <div class="pointer-events-none absolute -right-24 bottom-0 h-64 w-64 rounded-full bg-[#c9e2d3]/60 blur-3xl"></div>
+
+    <div class="relative mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+        <div class="space-y-8">
+            <span class="inline-flex items-center rounded-full border border-[#d9d6cf] bg-white/70 px-4 py-1 text-xs font-semibold tracking-[0.16em] text-[#68625c] uppercase">
+                Controla tus finanzas sin friccion
+            </span>
+
+            <div class="space-y-5">
+                <h1 class="max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
+                    Tu espacio de gastos,
+                    <span class="text-[#5f7d6d]">claro como Notion</span>
+                </h1>
+                <p class="max-w-xl text-base leading-relaxed text-[#5a5550] sm:text-lg">
+                    Organiza ingresos y egresos, visualiza tus movimientos y mantente al dia con una interfaz limpia, rapida y enfocada.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4">
+                <a asp-area="Identity" asp-page="/Account/Register" class="inline-flex items-center justify-center rounded-xl bg-[#1f1f1f] px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-black">
+                    Crear cuenta
+                </a>
+                <a asp-area="Identity" asp-page="/Account/Login" class="inline-flex items-center justify-center rounded-xl border border-[#c9c3bb] bg-white px-6 py-3 text-sm font-semibold text-[#2b2927] transition hover:-translate-y-0.5 hover:border-[#1f1f1f]">
+                    Iniciar sesion
+                </a>
+            </div>
+        </div>
+
+        <div class="rounded-3xl border border-[#d9d4cc] bg-white/80 p-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8">
+            <div class="mb-6 flex items-center justify-between border-b border-[#ece8e2] pb-4">
+                <h2 class="text-sm font-semibold tracking-wide text-[#3f3a35] uppercase">Resumen</h2>
+                <span class="rounded-lg bg-[#f1eee8] px-3 py-1 text-xs font-medium text-[#605a54]">Abril 2026</span>
+            </div>
+
+            <div class="space-y-4">
+                <div class="rounded-2xl border border-[#ebe6de] bg-[#faf9f7] p-4">
+                    <p class="text-xs font-medium tracking-wide text-[#706a64] uppercase">Disponible</p>
+                    <p class="mt-2 text-2xl font-semibold">$2,480.00</p>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="rounded-2xl border border-[#ebe6de] p-4">
+                        <p class="text-xs font-medium tracking-wide text-[#706a64] uppercase">Ingresos</p>
+                        <p class="mt-2 text-xl font-semibold text-[#3f6b52]">+$3,200</p>
+                    </div>
+                    <div class="rounded-2xl border border-[#ebe6de] p-4">
+                        <p class="text-xs font-medium tracking-wide text-[#706a64] uppercase">Gastos</p>
+                        <p class="mt-2 text-xl font-semibold text-[#9a4d3d]">-$720</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
