@@ -1,0 +1,243 @@
+@page
+@model GastosApp.Pages.GastosModel
+@{
+    ViewData["Title"] = "Gastos";
+}
+
+<section class="dashboard-stack">
+    <div class="dashboard-header">
+        <div>
+            <span class="hero-badge">Gestión de gastos</span>
+            <h1 class="page-title mt-3">Tus gastos en un solo lugar</h1>
+            <p class="page-subtitle">Aquí puedes registrar, filtrar, buscar, editar y eliminar gastos con tranquilidad.</p>
+        </div>
+
+        @if (TempData["GastosMessage"] is string message)
+        {
+            <div class="dashboard-alert">@message</div>
+        }
+    </div>
+
+    <article class="content-card mb-0">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Filtros y búsqueda</h2>
+                <p class="section-text">Encuentra tus movimientos por fechas, método, categoría o texto en la descripción.</p>
+            </div>
+        </div>
+
+        <form method="get" class="expense-form">
+            <div class="expense-grid expense-grid-4">
+                <div>
+                    <label asp-for="FiltroDesde" class="form-label">Desde</label>
+                    <input asp-for="FiltroDesde" class="form-control" type="date" />
+                </div>
+                <div>
+                    <label asp-for="FiltroHasta" class="form-label">Hasta</label>
+                    <input asp-for="FiltroHasta" class="form-control" type="date" />
+                </div>
+                <div>
+                    <label asp-for="FiltroMetodoPago" class="form-label">Método de pago</label>
+                    <select asp-for="FiltroMetodoPago" asp-items="Model.MetodoPagoFilterOptions" class="form-select"></select>
+                </div>
+                <div>
+                    <label asp-for="FiltroCategoria" class="form-label">Categoría</label>
+                    <select asp-for="FiltroCategoria" asp-items="Model.CategoriaFilterOptions" class="form-select"></select>
+                </div>
+            </div>
+
+            <div class="expense-grid expense-grid-2">
+                <div>
+                    <label asp-for="BusquedaDescripcion" class="form-label">Buscar descripción</label>
+                    <input asp-for="BusquedaDescripcion" class="form-control" placeholder="Ej: gasolina, mercado, streaming" />
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn-brand">Aplicar filtros</button>
+                    <a asp-page="/Gastos" class="btn-soft">Limpiar filtros</a>
+                </div>
+            </div>
+        </form>
+    </article>
+
+    <section class="dashboard-grid">
+        <article class="content-card mb-0">
+            <div class="section-head">
+                <div>
+                    <h2 class="section-title">Registrar gasto nuevo</h2>
+                    <p class="section-text">Guarda un gasto con los datos básicos para llevar control claro de tu dinero.</p>
+                </div>
+            </div>
+
+            <form method="post" class="expense-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="expense-grid expense-grid-2">
+                    <div>
+                        <label asp-for="Input.Valor" class="form-label"></label>
+                        <input asp-for="Input.Valor" class="form-control" placeholder="125000" />
+                        <span asp-validation-for="Input.Valor" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Fecha" class="form-label"></label>
+                        <input asp-for="Input.Fecha" class="form-control" />
+                        <span asp-validation-for="Input.Fecha" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="expense-grid expense-grid-2">
+                    <div>
+                        <label asp-for="Input.MetodoPago" class="form-label"></label>
+                        <select asp-for="Input.MetodoPago" asp-items="Model.MetodoPagoOptions" class="form-select"></select>
+                        <span asp-validation-for="Input.MetodoPago" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Categoria" class="form-label"></label>
+                        <select asp-for="Input.Categoria" asp-items="Model.CategoriaOptions" class="form-select"></select>
+                        <span asp-validation-for="Input.Categoria" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label asp-for="Input.Descripcion" class="form-label"></label>
+                    <input asp-for="Input.Descripcion" class="form-control" placeholder="Ej: mercado quincenal, gasolina, Netflix" />
+                    <span asp-validation-for="Input.Descripcion" class="text-danger"></span>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn-brand">Guardar gasto</button>
+                </div>
+            </form>
+        </article>
+
+        <article class="content-card mb-0">
+            <div class="section-head">
+                <div>
+                    <h2 class="section-title">Resultado actual</h2>
+                    <p class="section-text">@Model.TotalMovimientosFiltrados movimiento(s) encontrados.</p>
+                </div>
+            </div>
+
+            <div class="metric-box mb-0">
+                <div class="label">Total filtrado</div>
+                <div class="value">@Model.TotalFiltrado.ToString("C")</div>
+            </div>
+        </article>
+    </section>
+
+    <article class="content-card mb-0">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Listado de gastos</h2>
+                <p class="section-text">Revisa todos los movimientos encontrados y haz cambios si lo necesitas.</p>
+            </div>
+        </div>
+
+        @if (Model.GastosFiltrados.Count == 0)
+        {
+            <p class="empty-state">No hay gastos para los filtros aplicados.</p>
+        }
+        else
+        {
+            <div class="recent-list">
+                @foreach (var gasto in Model.GastosFiltrados)
+                {
+                    @if (Model.EditarId == gasto.Id)
+                    {
+                        <form method="post" asp-page-handler="Actualizar" asp-route-id="@gasto.Id" class="recent-item recent-item-edit">
+                            <input type="hidden" asp-for="FiltroDesde" />
+                            <input type="hidden" asp-for="FiltroHasta" />
+                            <input type="hidden" asp-for="FiltroMetodoPago" />
+                            <input type="hidden" asp-for="FiltroCategoria" />
+                            <input type="hidden" asp-for="BusquedaDescripcion" />
+
+                            <div class="expense-grid">
+                                <div class="expense-grid expense-grid-2">
+                                    <div>
+                                        <label asp-for="EditInput.Valor" class="form-label"></label>
+                                        <input asp-for="EditInput.Valor" class="form-control" />
+                                        <span asp-validation-for="EditInput.Valor" class="text-danger"></span>
+                                    </div>
+                                    <div>
+                                        <label asp-for="EditInput.Fecha" class="form-label"></label>
+                                        <input asp-for="EditInput.Fecha" class="form-control" />
+                                        <span asp-validation-for="EditInput.Fecha" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="expense-grid expense-grid-2">
+                                    <div>
+                                        <label asp-for="EditInput.MetodoPago" class="form-label"></label>
+                                        <select asp-for="EditInput.MetodoPago" asp-items="Model.MetodoPagoOptions" class="form-select"></select>
+                                        <span asp-validation-for="EditInput.MetodoPago" class="text-danger"></span>
+                                    </div>
+                                    <div>
+                                        <label asp-for="EditInput.Categoria" class="form-label"></label>
+                                        <select asp-for="EditInput.Categoria" asp-items="Model.CategoriaOptions" class="form-select"></select>
+                                        <span asp-validation-for="EditInput.Categoria" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label asp-for="EditInput.Descripcion" class="form-label"></label>
+                                    <input asp-for="EditInput.Descripcion" class="form-control" />
+                                    <span asp-validation-for="EditInput.Descripcion" class="text-danger"></span>
+                                </div>
+
+                                <div class="row-actions">
+                                    <button type="submit" class="btn-brand">Guardar cambios</button>
+                                    <a asp-page="/Gastos"
+                                       asp-route-FiltroDesde="@Model.FiltroDesde?.ToString("yyyy-MM-dd")"
+                                       asp-route-FiltroHasta="@Model.FiltroHasta?.ToString("yyyy-MM-dd")"
+                                       asp-route-FiltroMetodoPago="@Model.FiltroMetodoPago"
+                                       asp-route-FiltroCategoria="@Model.FiltroCategoria"
+                                       asp-route-BusquedaDescripcion="@Model.BusquedaDescripcion"
+                                       class="btn-soft">Cancelar</a>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="recent-item">
+                            <div>
+                                <strong>@gasto.Categoria.ToDisplayName()</strong>
+                                <div class="section-text">@gasto.MetodoPago.ToDisplayName() - @gasto.Fecha.ToString("dd/MM/yyyy")</div>
+                                @if (!string.IsNullOrWhiteSpace(gasto.Descripcion))
+                                {
+                                    <div class="recent-note">@gasto.Descripcion</div>
+                                }
+                            </div>
+
+                            <div class="recent-actions">
+                                <div class="category-total">@gasto.Valor.ToString("C")</div>
+                                <div class="row-actions">
+                                    <form method="post" asp-page-handler="Editar" asp-route-id="@gasto.Id">
+                                        <input type="hidden" asp-for="FiltroDesde" />
+                                        <input type="hidden" asp-for="FiltroHasta" />
+                                        <input type="hidden" asp-for="FiltroMetodoPago" />
+                                        <input type="hidden" asp-for="FiltroCategoria" />
+                                        <input type="hidden" asp-for="BusquedaDescripcion" />
+                                        <button type="submit" class="btn-soft">Editar</button>
+                                    </form>
+
+                                    <form method="post" asp-page-handler="Eliminar" asp-route-id="@gasto.Id" onsubmit="return confirm('Deseas eliminar este gasto?');">
+                                        <input type="hidden" asp-for="FiltroDesde" />
+                                        <input type="hidden" asp-for="FiltroHasta" />
+                                        <input type="hidden" asp-for="FiltroMetodoPago" />
+                                        <input type="hidden" asp-for="FiltroCategoria" />
+                                        <input type="hidden" asp-for="BusquedaDescripcion" />
+                                        <button type="submit" class="btn-danger">Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </article>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

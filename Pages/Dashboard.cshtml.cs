@@ -1,10 +1,8 @@
-using System.ComponentModel.DataAnnotations;
 using GastosApp.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace GastosApp.Pages;
@@ -21,115 +19,64 @@ public class DashboardModel : PageModel
         _userManager = userManager;
     }
 
-    [BindProperty]
-    public InputModel Input { get; set; } = new();
-
     public ApplicationUser UsuarioActual { get; private set; } = null!;
 
-    public decimal TotalMesActual { get; private set; }
+    public decimal TotalUltimos30Dias { get; private set; }
 
-    public decimal PromedioMesActual { get; private set; }
+    public decimal TotalUltimos15Dias { get; private set; }
 
-    public int TotalMovimientosMesActual { get; private set; }
+    public int MovimientosUltimos30Dias { get; private set; }
+
+    public int MovimientosUltimos15Dias { get; private set; }
 
     public List<Gasto> GastosRecientes { get; private set; } = [];
 
     public List<CategoriaResumen> ResumenPorCategoria { get; private set; } = [];
 
-    public IEnumerable<SelectListItem> MetodoPagoOptions => Enum
-        .GetValues<MetodoPago>()
-        .Select(value => new SelectListItem(value.ToDisplayName(), value.ToString()));
-
-    public IEnumerable<SelectListItem> CategoriaOptions => Enum
-        .GetValues<CategoriaGasto>()
-        .Select(value => new SelectListItem(value.ToDisplayName(), value.ToString()));
-
     public async Task<IActionResult> OnGetAsync()
     {
-        var user = await CargarUsuarioAsync();
-        if (user is null)
-        {
-            return Challenge();
-        }
-
-        await CargarDashboardAsync(user.Id);
-        Input.Fecha = DateTime.Today;
-        return Page();
-    }
-
-    public async Task<IActionResult> OnPostAsync()
-    {
-        var user = await CargarUsuarioAsync();
-        if (user is null)
-        {
-            return Challenge();
-        }
-
-        if (Input.Valor <= 0)
-        {
-            ModelState.AddModelError(nameof(Input.Valor), "Ingresa un valor mayor a cero.");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            await CargarDashboardAsync(user.Id);
-            return Page();
-        }
-
-        var gasto = new Gasto
-        {
-            Valor = Input.Valor,
-            Fecha = Input.Fecha,
-            MetodoPago = Enum.Parse<MetodoPago>(Input.MetodoPago),
-            Categoria = Enum.Parse<CategoriaGasto>(Input.Categoria),
-            Descripcion = string.IsNullOrWhiteSpace(Input.Descripcion) ? null : Input.Descripcion.Trim(),
-            UsuarioId = user.Id
-        };
-
-        _dbContext.Gastos.Add(gasto);
-        await _dbContext.SaveChangesAsync();
-
-        TempData["DashboardMessage"] = "Gasto registrado correctamente.";
-        return RedirectToPage();
-    }
-
-    private async Task<ApplicationUser?> CargarUsuarioAsync()
-    {
         var user = await _userManager.GetUserAsync(User);
-        if (user != null)
+        if (user is null)
         {
-            UsuarioActual = user;
+            return Challenge();
         }
 
-        return user;
+        UsuarioActual = user;
+        await CargarDashboardAsync(user.Id);
+        return Page();
     }
 
     private async Task CargarDashboardAsync(string userId)
     {
         var hoy = DateTime.Today;
-        var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
-        var siguienteMes = inicioMes.AddMonths(1);
+        var desde30 = hoy.AddDays(-30);
+        var desde15 = hoy.AddDays(-15);
 
-        var gastosUsuario = _dbContext.Gastos
+        var gastosUsuario = await _dbContext.Gastos
             .AsNoTracking()
-            .Where(gasto => gasto.UsuarioId == userId);
-
-        GastosRecientes = await gastosUsuario
+            .Where(gasto => gasto.UsuarioId == userId)
             .OrderByDescending(gasto => gasto.Fecha)
             .ThenByDescending(gasto => gasto.Id)
-            .Take(8)
             .ToListAsync();
 
-        // SQLite no soporta Sum sobre decimal en SQL; traemos los datos del mes y calculamos en memoria.
-        var gastosMesLista = await gastosUsuario
-            .Where(gasto => gasto.Fecha >= inicioMes && gasto.Fecha < siguienteMes)
-            .ToListAsync();
+        var gastos30 = gastosUsuario
+            .Where(gasto => gasto.Fecha.Date >= desde30)
+            .ToList();
 
-        TotalMesActual = gastosMesLista.Sum(gasto => gasto.Valor);
-        TotalMovimientosMesActual = gastosMesLista.Count;
-        PromedioMesActual = TotalMovimientosMesActual == 0 ? 0 : Math.Round(TotalMesActual / TotalMovimientosMesActual, 2);
+        var gastos15 = gastosUsuario
+            .Where(gasto => gasto.Fecha.Date >= desde15)
+            .ToList();
 
-        ResumenPorCategoria = gastosMesLista
+        TotalUltimos30Dias = gastos30.Sum(gasto => gasto.Valor);
+        TotalUltimos15Dias = gastos15.Sum(gasto => gasto.Valor);
+        MovimientosUltimos30Dias = gastos30.Count;
+        MovimientosUltimos15Dias = gastos15.Count;
+
+        GastosRecientes = gastos30
+            .Take(6)
+            .ToList();
+
+        ResumenPorCategoria = gastos30
             .GroupBy(gasto => gasto.Categoria)
             .Select(group => new CategoriaResumen
             {
@@ -138,31 +85,8 @@ public class DashboardModel : PageModel
                 Cantidad = group.Count()
             })
             .OrderByDescending(item => item.Total)
+            .Take(5)
             .ToList();
-    }
-
-    public class InputModel
-    {
-        [Required(ErrorMessage = "El valor del gasto es obligatorio.")]
-        [Display(Name = "Valor del gasto")]
-        public decimal Valor { get; set; }
-
-        [Required(ErrorMessage = "La fecha es obligatoria.")]
-        [DataType(DataType.Date)]
-        [Display(Name = "Fecha")]
-        public DateTime Fecha { get; set; } = DateTime.Today;
-
-        [Required(ErrorMessage = "Selecciona un metodo de pago.")]
-        [Display(Name = "Metodo de pago")]
-        public string MetodoPago { get; set; } = GastosApp.Data.MetodoPago.TarjetaDebito.ToString();
-
-        [Required(ErrorMessage = "Selecciona una categoria.")]
-        [Display(Name = "Categoria")]
-        public string Categoria { get; set; } = CategoriaGasto.Alimentacion.ToString();
-
-        [StringLength(160, ErrorMessage = "La descripcion puede tener maximo 160 caracteres.")]
-        [Display(Name = "Descripcion")]
-        public string? Descripcion { get; set; }
     }
 
     public class CategoriaResumen
@@ -173,32 +97,4 @@ public class DashboardModel : PageModel
 
         public int Cantidad { get; set; }
     }
-}
-
-internal static class GastoEnumExtensions
-{
-    public static string ToDisplayName(this MetodoPago value) => value switch
-    {
-        MetodoPago.Efectivo => "Efectivo",
-        MetodoPago.TarjetaDebito => "Tarjeta débito",
-        MetodoPago.TarjetaCredito => "Tarjeta crédito",
-        MetodoPago.Transferencia => "Transferencia",
-        MetodoPago.Nequi => "Nequi",
-        MetodoPago.Daviplata => "Daviplata",
-        _ => "Otro"
-    };
-
-    public static string ToDisplayName(this CategoriaGasto value) => value switch
-    {
-        CategoriaGasto.Alimentacion => "Alimentación",
-        CategoriaGasto.Transporte => "Transporte",
-        CategoriaGasto.Hogar => "Hogar",
-        CategoriaGasto.Salud => "Salud",
-        CategoriaGasto.Educacion => "Educación",
-        CategoriaGasto.Entretenimiento => "Entretenimiento",
-        CategoriaGasto.Servicios => "Servicios",
-        CategoriaGasto.Suscripciones => "Suscripciones",
-        CategoriaGasto.Compras => "Compras",
-        _ => "Otro"
-    };
 }
