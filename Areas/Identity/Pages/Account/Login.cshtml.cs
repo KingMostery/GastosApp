@@ -24,12 +24,12 @@ public class LoginModel : PageModel
 
     public void OnGet(string? returnUrl = null)
     {
-        ReturnUrl = returnUrl;
+        ReturnUrl = Url.Page("/Dashboard");
     }
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
-        ReturnUrl = returnUrl;
+        ReturnUrl = Url.Page("/Dashboard");
 
         if (!ModelState.IsValid)
         {
@@ -44,7 +44,7 @@ public class LoginModel : PageModel
 
         if (result.Succeeded)
         {
-            return LocalRedirect(returnUrl ?? "/");
+            return RedirectToPage("/Dashboard");
         }
 
         ModelState.AddModelError(string.Empty, "Correo o contrasena incorrectos.");

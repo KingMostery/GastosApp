@@ -16,7 +16,7 @@ public class IndexModel : PageModel
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToPage("/Privacy");
+            return RedirectToPage("/Dashboard");
         }
 
         return Page();

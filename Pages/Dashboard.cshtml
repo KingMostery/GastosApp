@@ -1,0 +1,154 @@
+@page
+@model GastosApp.Pages.DashboardModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="dashboard-stack">
+    <div class="dashboard-header">
+        <div>
+            <span class="hero-badge">Panel financiero</span>
+            <h1 class="page-title mt-3">Hola, @Model.UsuarioActual.NombreCompleto</h1>
+            <p class="page-subtitle">Este es el resumen de tus gastos del mes y el espacio para registrar nuevos movimientos.</p>
+        </div>
+
+        @if (TempData["DashboardMessage"] is string message)
+        {
+            <div class="dashboard-alert">@message</div>
+        }
+    </div>
+
+    <section class="stats-grid">
+        <article class="metric-box metric-box-strong mb-0">
+            <div class="label">Total gastado este mes</div>
+            <div class="value">@Model.TotalMesActual.ToString("C")</div>
+        </article>
+        <article class="metric-box mb-0">
+            <div class="label">Movimientos del mes</div>
+            <div class="value">@Model.TotalMovimientosMesActual</div>
+        </article>
+        <article class="metric-box mb-0">
+            <div class="label">Promedio por gasto</div>
+            <div class="value">@Model.PromedioMesActual.ToString("C")</div>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="content-card mb-0">
+            <div class="section-head">
+                <div>
+                    <h2 class="section-title">Registrar gasto</h2>
+                    <p class="section-text">Guarda el valor, fecha, categoría y método de pago para construir tu historial.</p>
+                </div>
+            </div>
+
+            <form method="post" class="expense-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="expense-grid expense-grid-2">
+                    <div>
+                        <label asp-for="Input.Valor" class="form-label"></label>
+                        <input asp-for="Input.Valor" class="form-control" placeholder="125000" />
+                        <span asp-validation-for="Input.Valor" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Fecha" class="form-label"></label>
+                        <input asp-for="Input.Fecha" class="form-control" />
+                        <span asp-validation-for="Input.Fecha" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="expense-grid expense-grid-2">
+                    <div>
+                        <label asp-for="Input.MetodoPago" class="form-label"></label>
+                        <select asp-for="Input.MetodoPago" asp-items="Model.MetodoPagoOptions" class="form-select"></select>
+                        <span asp-validation-for="Input.MetodoPago" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Categoria" class="form-label"></label>
+                        <select asp-for="Input.Categoria" asp-items="Model.CategoriaOptions" class="form-select"></select>
+                        <span asp-validation-for="Input.Categoria" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label asp-for="Input.Descripcion" class="form-label"></label>
+                    <input asp-for="Input.Descripcion" class="form-control" placeholder="Ej: mercado quincenal, gasolina, Netflix" />
+                    <span asp-validation-for="Input.Descripcion" class="text-danger"></span>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn-brand">Guardar gasto</button>
+                </div>
+            </form>
+        </article>
+
+        <div class="dashboard-side">
+            <article class="content-card mb-0">
+                <div class="section-head">
+                    <div>
+                        <h2 class="section-title">Top categorías</h2>
+                        <p class="section-text">Así se distribuyen tus gastos del mes actual.</p>
+                    </div>
+                </div>
+
+                @if (Model.ResumenPorCategoria.Count == 0)
+                {
+                    <p class="empty-state">Todavía no tienes gastos este mes. Registra el primero para empezar a ver tendencias.</p>
+                }
+                else
+                {
+                    <div class="category-list">
+                        @foreach (var categoria in Model.ResumenPorCategoria)
+                        {
+                            <div class="category-row">
+                                <div>
+                                    <strong>@categoria.Categoria.ToDisplayName()</strong>
+                                    <div class="section-text">@categoria.Cantidad movimiento(s)</div>
+                                </div>
+                                <div class="category-total">@categoria.Total.ToString("C")</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </article>
+
+            <article class="content-card mb-0">
+                <div class="section-head">
+                    <div>
+                        <h2 class="section-title">Últimos gastos</h2>
+                        <p class="section-text">Tus movimientos más recientes para control rápido.</p>
+                    </div>
+                </div>
+
+                @if (Model.GastosRecientes.Count == 0)
+                {
+                    <p class="empty-state">Aún no has registrado gastos.</p>
+                }
+                else
+                {
+                    <div class="recent-list">
+                        @foreach (var gasto in Model.GastosRecientes)
+                        {
+                            <div class="recent-item">
+                                <div>
+                                    <strong>@gasto.Categoria.ToDisplayName()</strong>
+                                    <div class="section-text">@gasto.MetodoPago.ToDisplayName() - @gasto.Fecha.ToString("dd/MM/yyyy")</div>
+                                    @if (!string.IsNullOrWhiteSpace(gasto.Descripcion))
+                                    {
+                                        <div class="recent-note">@gasto.Descripcion</div>
+                                    }
+                                </div>
+                                <div class="category-total">@gasto.Valor.ToString("C")</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </article>
+        </div>
+    </section>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

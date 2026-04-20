@@ -26,12 +26,12 @@ public class RegisterModel : PageModel
 
     public void OnGet(string? returnUrl = null)
     {
-        ReturnUrl = returnUrl;
+        ReturnUrl = Url.Page("/Dashboard");
     }
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
-        ReturnUrl = returnUrl;
+        ReturnUrl = Url.Page("/Dashboard");
 
         if (!ModelState.IsValid)
         {
@@ -49,7 +49,7 @@ public class RegisterModel : PageModel
         if (result.Succeeded)
         {
             await _signInManager.SignInAsync(user, isPersistent: false);
-            return LocalRedirect(returnUrl ?? "/");
+            return RedirectToPage("/Dashboard");
         }
 
         foreach (var error in result.Errors)

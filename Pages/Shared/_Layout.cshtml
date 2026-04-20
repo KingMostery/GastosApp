@@ -22,6 +22,10 @@
 
             <nav class="topbar-nav">
                 <a class="topbar-link" asp-area="" asp-page="/Index">Inicio</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="topbar-link" asp-area="" asp-page="/Dashboard">Dashboard</a>
+                }
                 <a class="topbar-link" asp-area="" asp-page="/Privacy">Privacidad</a>
             </nav>
 

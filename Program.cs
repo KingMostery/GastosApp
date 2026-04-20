@@ -58,6 +58,21 @@ using (var scope = app.Services.CreateScope())
     {
         dbContext.Database.ExecuteSqlRaw("ALTER TABLE AspNetUsers ADD COLUMN NombreCompleto TEXT NOT NULL DEFAULT ''");
     }
+
+    dbContext.Database.ExecuteSqlRaw(
+        @"CREATE TABLE IF NOT EXISTS Gastos (
+            Id INTEGER NOT NULL CONSTRAINT PK_Gastos PRIMARY KEY AUTOINCREMENT,
+            Valor TEXT NOT NULL,
+            Fecha TEXT NOT NULL,
+            MetodoPago TEXT NOT NULL,
+            Categoria TEXT NOT NULL,
+            UsuarioId TEXT NOT NULL,
+            Descripcion TEXT NULL,
+            CONSTRAINT FK_Gastos_AspNetUsers_UsuarioId FOREIGN KEY (UsuarioId) REFERENCES AspNetUsers (Id) ON DELETE CASCADE
+        );");
+
+    dbContext.Database.ExecuteSqlRaw(
+        @"CREATE INDEX IF NOT EXISTS IX_Gastos_UsuarioId ON Gastos (UsuarioId);");
 }
 
 // 🔹 Pipeline
