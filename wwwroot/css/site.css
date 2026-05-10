@@ -916,3 +916,223 @@ a:hover {
     margin-left: 0;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   GAMIFICACIÓN
+══════════════════════════════════════════════════════════════════════════ */
+
+.gami-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Top row: score + racha ─────────────────────────────────────────────── */
+.gami-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ── Score card ─────────────────────────────────────────────────────────── */
+.gami-score-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.gami-score-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gami-score-ring {
+  width: 130px;
+  height: 130px;
+  margin: 8px 0 4px;
+}
+
+.score-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 3;
+}
+
+.score-fill {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.8s ease;
+}
+
+.score-fill.score-green  { stroke: #1b8f62; }
+.score-fill.score-orange { stroke: #d97706; }
+.score-fill.score-red    { stroke: #b33c3c; }
+
+.score-text {
+  fill: var(--ink);
+  font-size: 9px;
+  font-weight: 800;
+  font-family: "Sora", sans-serif;
+  text-anchor: middle;
+  transform: rotate(90deg) translate(0, -36px);
+  dominant-baseline: middle;
+}
+
+.gami-score-tag {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.gami-score-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── Racha card ─────────────────────────────────────────────────────────── */
+.gami-racha-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.gami-racha-icon {
+  font-size: 2.4rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.gami-racha-num {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.gami-racha-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.gami-racha-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.racha-dots {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.racha-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.3s;
+}
+
+.racha-dot-on {
+  background: linear-gradient(135deg, #ff6b00, #ffd200);
+  box-shadow: 0 2px 6px rgba(255, 107, 0, 0.4);
+}
+
+/* ── Logros grid ─────────────────────────────────────────────────────────── */
+.logros-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.logro-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 18px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.logro-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-sm);
+}
+
+.logro-on {
+  background: linear-gradient(145deg, #f0faf5, #e2f5ec);
+  border-color: #a3d9bc;
+}
+
+.logro-off {
+  background: var(--surface-soft);
+  opacity: 0.6;
+  filter: grayscale(0.5);
+}
+
+.logro-icono {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.logro-nombre {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.logro-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.logro-lock {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+@media (max-width: 992px) {
+  .gami-top {
+    grid-template-columns: 1fr;
+  }
+
+  .logros-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .logros-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
