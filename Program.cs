@@ -6,9 +6,17 @@ using GastosApp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 Base de datos (SQLite GRATIS)
+// 🔹 Base de datos (SQLite) — ruta persistente en Azure App Service
+var homeDir = Environment.GetEnvironmentVariable("HOME");
+var dbDir   = homeDir is not null
+    ? Path.Combine(homeDir, "data")          // Azure: D:\home\data  (persistente)
+    : builder.Environment.ContentRootPath;    // Local: carpeta del proyecto
+
+Directory.CreateDirectory(dbDir);
+var dbPath = Path.Combine(dbDir, "gastos.db");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=gastos.db"));
+    options.UseSqlite($"Data Source={dbPath}"));
 
 // 🔹 Identity (login SIN roles)
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

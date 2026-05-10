@@ -1269,3 +1269,4 @@ C:\Users\Andres Durango\Desktop\AppGastos\GastosApp\temp_build_verify_split_dash
 C:\Users\Andres Durango\Desktop\AppGastos\GastosApp\temp_build_verify_split_dashboard_gastos2\runtimes\win-x64\native\e_sqlite3.dll
 C:\Users\Andres Durango\Desktop\AppGastos\GastosApp\temp_build_verify_split_dashboard_gastos2\runtimes\win-x86\native\e_sqlite3.dll
 C:\Users\Andres Durango\Desktop\AppGastos\GastosApp\obj\Debug\net8.0\GastosApp.sourcelink.json
+C:\Users\Andres Durango\Desktop\AppGastos\GastosApp\bin\Debug\net8.0\web.config

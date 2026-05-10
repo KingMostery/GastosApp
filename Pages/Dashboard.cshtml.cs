@@ -66,6 +66,11 @@ public class DashboardModel : PageModel
     public List<Prestamo> PrestamosVencidos { get; private set; } = [];
     public List<Prestamo> PrestamosPendientesList { get; private set; } = [];
 
+    // ── Gamificación ──────────────────────────────────────────────────────────
+    public int PuntajeFinanciero { get; private set; }
+    public int RachaAhorro { get; private set; }
+    public List<Logro> Logros { get; private set; } = [];
+
     public async Task<IActionResult> OnGetAsync()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -157,6 +162,130 @@ public class DashboardModel : PageModel
         PrestamosVencidos = todosPrestamos
             .Where(p => p.FechaEstimadaDevolucion.HasValue && p.FechaEstimadaDevolucion.Value.Date < hoy)
             .ToList();
+
+        // ── Gamificación ──────────────────────────────────────────────────────
+        CalcularGamificacion(gastosMesActual, todosGastos, diasTotalesMes, hoy);
+    }
+
+    private void CalcularGamificacion(
+        List<Gasto> gastosMesActual,
+        List<Gasto> todosGastos,
+        int diasTotalesMes,
+        DateTime hoy)
+    {
+        // ── Racha de ahorro ───────────────────────────────────────────────────
+        // Días consecutivos (hacia atrás desde ayer) donde gastos del día <= presupuesto diario
+        decimal presupuestoDiario = IngresosMes > 0 && diasTotalesMes > 0
+            ? IngresosMes / diasTotalesMes
+            : (PromedioDiario > 0 ? PromedioDiario * 1.2m : 0);
+
+        var gastosPorDia = gastosMesActual
+            .GroupBy(g => g.Fecha.Date)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Valor));
+
+        int racha = 0;
+        for (int d = hoy.Day; d >= 1; d--)
+        {
+            var fecha = new DateTime(hoy.Year, hoy.Month, d);
+            var gastadoDia = gastosPorDia.ContainsKey(fecha) ? gastosPorDia[fecha] : 0;
+            if (presupuestoDiario == 0 ? gastadoDia == 0 : gastadoDia <= presupuestoDiario)
+                racha++;
+            else
+                break;
+        }
+        RachaAhorro = racha;
+
+        // ── Puntuación financiera (0-100) ────────────────────────────────────
+        int score = 0;
+
+        // 1. Tasa de ahorro del mes: hasta 35 pts
+        score += TasaAhorro switch
+        {
+            > 30 => 35,
+            > 20 => 28,
+            > 10 => 20,
+            > 0  => 10,
+            _    => 0
+        };
+
+        // 2. Sin préstamos vencidos: 20 pts
+        if (PrestamosVencidos.Count == 0) score += 20;
+
+        // 3. Proyección dentro del ingreso del mes: 20 pts
+        if (IngresosMes > 0 && ProyeccionMes <= IngresosMes) score += 20;
+
+        // 4. Tiene ingresos registrados este mes: 10 pts
+        if (IngresosMes > 0) score += 10;
+
+        // 5. Racha de ahorro >= 5 días: 5 pts; >= 10 días: 10 pts
+        if (RachaAhorro >= 10) score += 10;
+        else if (RachaAhorro >= 5) score += 5;
+
+        // 6. Gastos distribuidos (al menos 5 gastos en el mes): 5 pts
+        if (gastosMesActual.Count >= 5) score += 5;
+
+        PuntajeFinanciero = Math.Min(score, 100);
+
+        // ── Logros ────────────────────────────────────────────────────────────
+        Logros =
+        [
+            new Logro
+            {
+                Icono = "📝",
+                Nombre = "Primer paso",
+                Descripcion = "Registraste tu primer gasto",
+                Desbloqueado = todosGastos.Count >= 1
+            },
+            new Logro
+            {
+                Icono = "💰",
+                Nombre = "Ahorrador del mes",
+                Descripcion = "Cerraste el mes con balance positivo",
+                Desbloqueado = BalanceMes > 0
+            },
+            new Logro
+            {
+                Icono = "🌟",
+                Nombre = "Gran ahorrador",
+                Descripcion = "Tasa de ahorro superior al 20% este mes",
+                Desbloqueado = TasaAhorro >= 20
+            },
+            new Logro
+            {
+                Icono = "📊",
+                Nombre = "Organizado",
+                Descripcion = "Tienes más de 10 gastos registrados en total",
+                Desbloqueado = todosGastos.Count >= 10
+            },
+            new Logro
+            {
+                Icono = "🏆",
+                Nombre = "Sin deudas urgentes",
+                Descripcion = "No tienes préstamos vencidos",
+                Desbloqueado = PrestamosVencidos.Count == 0
+            },
+            new Logro
+            {
+                Icono = "🔥",
+                Nombre = "En racha",
+                Descripcion = "5 días consecutivos dentro del presupuesto",
+                Desbloqueado = RachaAhorro >= 5
+            },
+            new Logro
+            {
+                Icono = "📈",
+                Nombre = "Ingresos crecientes",
+                Descripcion = "Ingresaste más este mes que el mes anterior",
+                Desbloqueado = IngresosMes > IngresosMesAnterior && IngresosMes > 0
+            },
+            new Logro
+            {
+                Icono = "💎",
+                Nombre = "Maestro financiero",
+                Descripcion = "Puntuación financiera de 80 o más",
+                Desbloqueado = PuntajeFinanciero >= 80
+            },
+        ];
     }
 
     public class CategoriaResumen
