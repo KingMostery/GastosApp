@@ -542,4 +542,377 @@ a:hover {
   .recent-actions {
     align-items: flex-start;
   }
+
+  .balance-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .balance-sep {
+    display: none;
+  }
+}
+
+/* ── Income / Balance ────────────────────────────────────────────────────── */
+.metric-box-income {
+  background: linear-gradient(160deg, #1a7a4a, #12b05a);
+  border-color: transparent;
+}
+
+.metric-box-income .label,
+.metric-box-income .value {
+  color: #fff;
+}
+
+.metric-box-warn {
+  background: linear-gradient(160deg, #b97a00, #e09a00);
+  border-color: transparent;
+}
+
+.metric-box-warn .label,
+.metric-box-warn .value {
+  color: #fff;
+}
+
+.income-amount {
+  color: #1a7a4a;
+  font-weight: 700;
+}
+
+/* ── Balance banner ──────────────────────────────────────────────────────── */
+.balance-banner {
+  border-radius: 14px;
+  padding: 22px 28px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  background: var(--surface);
+}
+
+.balance-banner.balance-positive {
+  background: linear-gradient(135deg, #edfaf3, #d4f4e5);
+  border-color: #a3dfc2;
+}
+
+.balance-banner.balance-negative {
+  background: linear-gradient(135deg, #fef0f0, #fcd9d9);
+  border-color: #f5a0a0;
+}
+
+.balance-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.balance-item {
+  flex: 1;
+  text-align: center;
+}
+
+.balance-label {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.balance-sep {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--muted);
+  flex: 0;
+}
+
+.balance-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.income-text  { color: #1a7a4a; }
+.expense-text { color: #c0392b; }
+.balance-text.positive { color: #1a7a4a; }
+.balance-text.negative { color: #c0392b; }
+
+.balance-alert {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.alert-link {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.alert-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Loan states ─────────────────────────────────────────────────────────── */
+.estado-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.estado-pendiente {
+  background: #fff3cd;
+  color: #7a5600;
+}
+
+.estado-devuelto {
+  background: #d4f4e5;
+  color: #1a5c36;
+}
+
+.row-vencido {
+  background: #fff5f5;
+  border-left: 3px solid #e74c3c;
+}
+
+.vencido-tag {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.done-btn {
+  background: #edfaf3;
+  color: #1a7a4a;
+  border: 1px solid #a3dfc2;
+}
+
+.done-btn:hover {
+  background: #d4f4e5;
+}
+
+/* ── Dashboard — progress bars ───────────────────────────────────────────── */
+.dash-progress-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.dash-prog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.dash-prog-label {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.dash-prog-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.dash-prog-value.progress-green  { color: #1a7a4a; }
+.dash-prog-value.progress-orange { color: #b97a00; }
+.dash-prog-value.progress-red    { color: #c0392b; }
+
+.dash-prog-sub {
+  margin-top: 8px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.progress-track {
+  height: 12px;
+  background: rgba(0,0,0,0.07);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-track-sm {
+  height: 6px;
+  margin-top: 2px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.progress-fill.progress-green  { background: #1a7a4a; }
+.progress-fill.progress-orange { background: #e09a00; }
+.progress-fill.progress-red    { background: #c0392b; }
+.progress-fill.progress-brand  { background: var(--brand); }
+
+/* ── Dashboard — status chips ────────────────────────────────────────────── */
+.chip-green  { background: #d4f4e5; color: #1a5c36; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.chip-orange { background: #fff3cd; color: #7a5600; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.chip-red    { background: #fcd9d9; color: #7a1111; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.chip-gray   { background: var(--surface-soft); color: var(--muted); padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+
+/* ── Dashboard — categoría top ───────────────────────────────────────────── */
+.categoria-top-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, var(--surface-soft), #e8f0fe);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 24px;
+}
+
+.categoria-top-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.categoria-top-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+.categoria-top-nombre {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.categoria-top-monto {
+  margin-left: auto;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.categoria-top-count {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-left: 8px;
+}
+
+/* ── Dashboard — compare tags ────────────────────────────────────────────── */
+.compare-tag {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.compare-tag.up   { background: #d4f4e5; color: #1a5c36; }
+.compare-tag.down { background: #fcd9d9; color: #7a1111; }
+
+/* ── Dashboard — vencidos alert ──────────────────────────────────────────── */
+.dash-alert-vencidos {
+  background: linear-gradient(135deg, #fff0ee, #fde0dd);
+  border: 1.5px solid #f5a0a0;
+  border-radius: 14px;
+  padding: 16px 22px;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.vencidos-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.vencido-chip {
+  background: #fff;
+  border: 1px solid #f5a0a0;
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #7a1111;
+}
+
+/* ── Dashboard — préstamos tabla ─────────────────────────────────────────── */
+.prestamos-tabla {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.prestamos-th,
+.prestamos-tr {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.4fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+}
+
+.prestamos-th {
+  background: var(--surface-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.prestamos-tr {
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.prestamos-tr:hover {
+  background: var(--surface-soft);
+}
+
+.tr-vencido {
+  background: #fff5f5;
+  border-left: 3px solid #e74c3c;
+}
+
+/* ── Dashboard — 4-col stats ─────────────────────────────────────────────── */
+.stats-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* ── Button size variant ─────────────────────────────────────────────────── */
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 992px) {
+  .dash-progress-grid,
+  .stats-grid-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .prestamos-th,
+  .prestamos-tr {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .categoria-top-banner {
+    flex-wrap: wrap;
+  }
+
+  .categoria-top-monto {
+    margin-left: 0;
+  }
 }

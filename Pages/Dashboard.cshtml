@@ -1,50 +1,198 @@
 @page
 @model GastosApp.Pages.DashboardModel
+@using GastosApp.Data
 @{
     ViewData["Title"] = "Dashboard";
+    var tasaColor = Model.TasaAhorro > 20 ? "progress-green"
+                  : Model.TasaAhorro > 0  ? "progress-orange"
+                  : "progress-red";
+    var gastadoColor = Model.PorcentajeGastado < 70 ? "progress-green"
+                     : Model.PorcentajeGastado < 90 ? "progress-orange"
+                     : "progress-red";
+    var mesNombre = System.Globalization.CultureInfo.GetCultureInfo("es-CO")
+                        .DateTimeFormat.GetMonthName(DateTime.Today.Month);
+    mesNombre = char.ToUpper(mesNombre[0]) + mesNombre.Substring(1);
 }
 
 <section class="dashboard-stack">
+
+    @* ═══ HEADER ══════════════════════════════════════════════════════════ *@
     <div class="dashboard-header">
         <div>
             <span class="hero-badge">Panel financiero</span>
-            <h1 class="page-title mt-3">Hola, @Model.UsuarioActual.NombreCompleto</h1>
-            <p class="page-subtitle">Aquí tienes un resumen simple de tu actividad reciente. Para ver todo el historial, entra a Gastos.</p>
+            <h1 class="page-title mt-3">Hola, @Model.UsuarioActual.NombreCompleto 👋</h1>
+            <p class="page-subtitle">Resumen de @mesNombre @DateTime.Today.Year — día @Model.DiasTranscurridos de @DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month).</p>
         </div>
-
         <div class="action-row">
-            <a asp-page="/Gastos" class="btn-brand">Ir a Gastos</a>
-            <a asp-page="/Privacy" class="btn-soft">Ver privacidad</a>
+            <a asp-page="/Gastos"   class="btn-brand">+ Gasto</a>
+            <a asp-page="/Ingresos" class="btn-soft">+ Ingreso</a>
+            <a asp-page="/Prestamos" class="btn-soft">+ Préstamo</a>
         </div>
     </div>
 
-    <section class="stats-grid">
+    @* ═══ ALERTA PRÉSTAMOS VENCIDOS ════════════════════════════════════════ *@
+    @if (Model.PrestamosVencidos.Count > 0)
+    {
+        <div class="dash-alert-vencidos">
+            <strong>⚠️ @Model.PrestamosVencidos.Count préstamo(s) vencido(s)</strong> — la fecha de devolución ya pasó.
+            <div class="vencidos-list">
+                @foreach (var p in Model.PrestamosVencidos)
+                {
+                    <span class="vencido-chip">@p.Persona · @p.Monto.ToString("C") · venció @p.FechaEstimadaDevolucion!.Value.ToString("dd/MM/yyyy")</span>
+                }
+            </div>
+            <a asp-page="/Prestamos" class="alert-link">Gestionar préstamos →</a>
+        </div>
+    }
+
+    @* ═══ BALANCE DEL MES ══════════════════════════════════════════════════ *@
+    <section class="balance-banner @(Model.BalanceMes >= 0 ? "balance-positive" : "balance-negative")">
+        <div class="balance-row">
+            <div class="balance-item">
+                <div class="balance-label">Ingresos de @mesNombre</div>
+                <div class="balance-value income-text">+@Model.IngresosMes.ToString("C")</div>
+                @{
+                    var diffIng = Model.IngresosMes - Model.IngresosMesAnterior;
+                    var pctIng  = Model.IngresosMesAnterior > 0 ? Math.Round(diffIng / Model.IngresosMesAnterior * 100, 0) : 0;
+                }
+                <div class="compare-tag @(diffIng >= 0 ? "up" : "down")">
+                    @(diffIng >= 0 ? "↑" : "↓") @Math.Abs(pctIng)% vs mes ant.
+                </div>
+            </div>
+            <div class="balance-sep">−</div>
+            <div class="balance-item">
+                <div class="balance-label">Gastos de @mesNombre</div>
+                <div class="balance-value expense-text">−@Model.GastosMes.ToString("C")</div>
+                @{
+                    var diffGas = Model.GastosMes - Model.GastosMesAnterior;
+                    var pctGas  = Model.GastosMesAnterior > 0 ? Math.Round(diffGas / Model.GastosMesAnterior * 100, 0) : 0;
+                }
+                <div class="compare-tag @(diffGas <= 0 ? "up" : "down")">
+                    @(diffGas >= 0 ? "↑" : "↓") @Math.Abs(pctGas)% vs mes ant.
+                </div>
+            </div>
+            <div class="balance-sep">=</div>
+            <div class="balance-item">
+                <div class="balance-label">Ahorro de @mesNombre</div>
+                <div class="balance-value balance-text @(Model.BalanceMes >= 0 ? "positive" : "negative")">
+                    @(Model.BalanceMes >= 0 ? "+" : "")@Model.BalanceMes.ToString("C")
+                </div>
+                @{
+                    var diffBal = Model.BalanceMes - Model.BalanceMesAnterior;
+                }
+                <div class="compare-tag @(diffBal >= 0 ? "up" : "down")">
+                    @(diffBal >= 0 ? "↑" : "↓") vs mes ant.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* ═══ TASA DE AHORRO + BARRA PRESUPUESTO ══════════════════════════════ *@
+    <section class="dash-progress-grid">
+
+        <article class="content-card mb-0">
+            <div class="dash-prog-header">
+                <div>
+                    <div class="dash-prog-label">Tasa de ahorro</div>
+                    <div class="dash-prog-value @tasaColor">@Model.TasaAhorro%</div>
+                </div>
+                <div class="dash-prog-hint">
+                    @if (Model.TasaAhorro > 20)      { <span class="chip-green">Excelente 🎉</span> }
+                    else if (Model.TasaAhorro > 0)   { <span class="chip-orange">Puedes mejorar</span> }
+                    else if (Model.IngresosMes == 0)  { <span class="chip-gray">Sin ingresos</span> }
+                    else                              { <span class="chip-red">Déficit ⚠️</span> }
+                </div>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill @tasaColor"
+                     style="width: @(Math.Min(Math.Abs(Model.TasaAhorro), 100))%"></div>
+            </div>
+            <div class="dash-prog-sub">
+                @if (Model.IngresosMes > 0)
+                {
+                    <span>Ahorras <strong>@Model.TasaAhorro%</strong> de tus ingresos este mes</span>
+                }
+                else
+                {
+                    <span>Registra ingresos para ver tu tasa de ahorro</span>
+                }
+            </div>
+        </article>
+
+        <article class="content-card mb-0">
+            <div class="dash-prog-header">
+                <div>
+                    <div class="dash-prog-label">Presupuesto consumido</div>
+                    <div class="dash-prog-value @gastadoColor">@Model.PorcentajeGastado%</div>
+                </div>
+                <div class="dash-prog-hint">
+                    @if (Model.PorcentajeGastado < 70)     { <span class="chip-green">Bajo control</span> }
+                    else if (Model.PorcentajeGastado < 90) { <span class="chip-orange">Cuidado</span> }
+                    else                                    { <span class="chip-red">Límite ⚠️</span> }
+                </div>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill @gastadoColor"
+                     style="width: @Model.PorcentajeGastado%"></div>
+            </div>
+            <div class="dash-prog-sub">
+                Gastaste <strong>@Model.GastosMes.ToString("C")</strong>
+                de <strong>@Model.IngresosMes.ToString("C")</strong> ingresados
+            </div>
+        </article>
+
+    </section>
+
+    @* ═══ MÉTRICAS RÁPIDAS ═════════════════════════════════════════════════ *@
+    <section class="stats-grid stats-grid-4">
         <article class="metric-box metric-box-strong mb-0">
-            <div class="label">Últimos 30 días</div>
+            <div class="label">Gastos (30 días)</div>
             <div class="value">@Model.TotalUltimos30Dias.ToString("C")</div>
         </article>
         <article class="metric-box mb-0">
-            <div class="label">Gastos en 30 días</div>
-            <div class="value">@Model.MovimientosUltimos30Dias</div>
+            <div class="label">Promedio diario</div>
+            <div class="value">@Model.PromedioDiario.ToString("C")</div>
         </article>
         <article class="metric-box mb-0">
-            <div class="label">Últimos 15 días</div>
-            <div class="value">@Model.TotalUltimos15Dias.ToString("C")</div>
+            <div class="label">Proyección del mes</div>
+            <div class="value">@Model.ProyeccionMes.ToString("C")</div>
+        </article>
+        <article class="metric-box @(Model.PrestamosVencidos.Count > 0 ? "metric-box-warn" : "") mb-0">
+            <div class="label">Préstamos pendientes</div>
+            <div class="value">@Model.PrestamosPendientes</div>
         </article>
     </section>
 
+    @* ═══ CATEGORÍA TOP ════════════════════════════════════════════════════ *@
+    @if (Model.CategoriaTop is not null)
+    {
+        <div class="categoria-top-banner">
+            <div class="categoria-top-icon">📊</div>
+            <div>
+                <div class="categoria-top-label">Este mes te fuiste más en</div>
+                <div class="categoria-top-nombre">@Model.CategoriaTop.Categoria.ToDisplayName()</div>
+            </div>
+            <div class="categoria-top-monto">@Model.CategoriaTop.Total.ToString("C")</div>
+            <div class="categoria-top-count">@Model.CategoriaTop.Cantidad movimiento(s)</div>
+        </div>
+    }
+
+    @* ═══ CUADRÍCULA PRINCIPAL ═════════════════════════════════════════════ *@
     <section class="dashboard-grid">
+
+        @* Movimientos recientes *@
         <article class="content-card mb-0">
             <div class="section-head">
                 <div>
-                    <h2 class="section-title">Movimientos recientes</h2>
-                    <p class="section-text">Estos son tus últimos gastos dentro de los últimos 30 días.</p>
+                    <h2 class="section-title">Gastos recientes</h2>
+                    <p class="section-text">Últimos movimientos de los 30 días.</p>
                 </div>
+                <a asp-page="/Gastos" class="btn-soft btn-sm">Ver todos</a>
             </div>
 
             @if (Model.GastosRecientes.Count == 0)
             {
-                <p class="empty-state">No tienes gastos registrados en los últimos 30 días.</p>
+                <p class="empty-state">No tienes gastos en los últimos 30 días.</p>
             }
             else
             {
@@ -54,46 +202,130 @@
                         <div class="recent-item">
                             <div>
                                 <strong>@gasto.Categoria.ToDisplayName()</strong>
-                                <div class="section-text">@gasto.MetodoPago.ToDisplayName() - @gasto.Fecha.ToString("dd/MM/yyyy")</div>
+                                <div class="section-text">@gasto.MetodoPago.ToDisplayName() · @gasto.Fecha.ToString("dd/MM")</div>
                                 @if (!string.IsNullOrWhiteSpace(gasto.Descripcion))
                                 {
                                     <div class="recent-note">@gasto.Descripcion</div>
                                 }
                             </div>
-                            <div class="category-total">@gasto.Valor.ToString("C")</div>
+                            <div class="category-total expense-text">@gasto.Valor.ToString("C")</div>
                         </div>
                     }
                 </div>
             }
         </article>
 
+        @* Panel derecho *@
+        <div class="dashboard-side">
+
+            @* Top categorías *@
+            <article class="content-card mb-0">
+                <div class="section-head">
+                    <h2 class="section-title">Categorías del mes</h2>
+                </div>
+                @if (Model.ResumenPorCategoria.Count == 0)
+                {
+                    <p class="empty-state">Sin datos aún.</p>
+                }
+                else
+                {
+                    var maxCat = Model.ResumenPorCategoria.Max(c => c.Total);
+                    <div class="category-list">
+                        @foreach (var cat in Model.ResumenPorCategoria)
+                        {
+                            var pct = maxCat > 0 ? (int)(cat.Total / maxCat * 100) : 0;
+                            <div class="category-row">
+                                <div style="flex:1">
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+                                        <strong>@cat.Categoria.ToDisplayName()</strong>
+                                        <span class="category-total">@cat.Total.ToString("C")</span>
+                                    </div>
+                                    <div class="progress-track progress-track-sm">
+                                        <div class="progress-fill progress-brand" style="width:@pct%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </article>
+
+            @* Ingresos recientes *@
+            <article class="content-card mb-0">
+                <div class="section-head">
+                    <h2 class="section-title">Ingresos recientes</h2>
+                    <a asp-page="/Ingresos" class="btn-soft btn-sm">Ver todos</a>
+                </div>
+                @if (Model.IngresosRecientes.Count == 0)
+                {
+                    <p class="empty-state">Sin ingresos registrados.</p>
+                }
+                else
+                {
+                    <div class="recent-list">
+                        @foreach (var ing in Model.IngresosRecientes)
+                        {
+                            <div class="recent-item">
+                                <div>
+                                    <strong>@ing.Concepto</strong>
+                                    <div class="section-text">@ing.Fuente.ToDisplayName() · @ing.Fecha.ToString("dd/MM")</div>
+                                </div>
+                                <div class="category-total income-text">+@ing.Valor.ToString("C")</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </article>
+
+        </div>
+    </section>
+
+    @* ═══ PRÉSTAMOS PENDIENTES ══════════════════════════════════════════════ *@
+    @if (Model.PrestamosPendientesList.Count > 0)
+    {
         <article class="content-card mb-0">
             <div class="section-head">
                 <div>
-                    <h2 class="section-title">Categorías más activas</h2>
-                    <p class="section-text">Distribución de tus gastos de los últimos 30 días.</p>
+                    <h2 class="section-title">Préstamos pendientes</h2>
+                    <p class="section-text">
+                        @Model.PrestamosPendientes préstamo(s) ·
+                        <strong>@Model.TotalPrestadoPendiente.ToString("C")</strong> por cobrar
+                    </p>
                 </div>
+                <a asp-page="/Prestamos" class="btn-soft btn-sm">Gestionar</a>
             </div>
 
-            @if (Model.ResumenPorCategoria.Count == 0)
-            {
-                <p class="empty-state">Todavía no hay suficiente información para mostrar categorías.</p>
-            }
-            else
-            {
-                <div class="category-list">
-                    @foreach (var categoria in Model.ResumenPorCategoria)
-                    {
-                        <div class="category-row">
-                            <div>
-                                <strong>@categoria.Categoria.ToDisplayName()</strong>
-                                <div class="section-text">@categoria.Cantidad movimiento(s)</div>
-                            </div>
-                            <div class="category-total">@categoria.Total.ToString("C")</div>
-                        </div>
-                    }
+            <div class="prestamos-tabla">
+                <div class="prestamos-th">
+                    <span>Persona</span>
+                    <span>Monto</span>
+                    <span>Fecha límite</span>
+                    <span>Estado</span>
                 </div>
-            }
+                @foreach (var pre in Model.PrestamosPendientesList)
+                {
+                    var vencido = pre.FechaEstimadaDevolucion.HasValue
+                        && pre.FechaEstimadaDevolucion.Value.Date < DateTime.Today;
+                    <div class="prestamos-tr @(vencido ? "tr-vencido" : "")">
+                        <span><strong>@pre.Persona</strong></span>
+                        <span>@pre.Monto.ToString("C")</span>
+                        <span>
+                            @if (pre.FechaEstimadaDevolucion.HasValue)
+                            {
+                                @pre.FechaEstimadaDevolucion.Value.ToString("dd/MM/yyyy")
+                                if (vencido) { <span class="vencido-tag"> ⚠️</span> }
+                            }
+                            else { <span class="section-text">Sin fecha</span> }
+                        </span>
+                        <span>
+                            <span class="estado-badge estado-@pre.Estado.ToString().ToLower()">
+                                @pre.Estado.ToDisplayName()
+                            </span>
+                        </span>
+                    </div>
+                }
+            </div>
         </article>
-    </section>
+    }
+
 </section>

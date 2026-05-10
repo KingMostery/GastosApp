@@ -21,13 +21,19 @@
             </a>
 
             <nav class="topbar-nav">
-                <a class="topbar-link" asp-area="" asp-page="/Index">Inicio</a>
+              
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <a class="topbar-link" asp-area="" asp-page="/Dashboard">Dashboard</a>
                     <a class="topbar-link" asp-area="" asp-page="/Gastos">Gastos</a>
+                    <a class="topbar-link" asp-area="" asp-page="/Ingresos">Ingresos</a>
+                    <a class="topbar-link" asp-area="" asp-page="/Prestamos">Préstamos</a>
+                }else
+                {
+                      <a class="topbar-link" asp-area="" asp-page="/Index">Inicio</a>
+                      <a class="topbar-link" asp-area="" asp-page="/Privacy">Privacidad</a> 
                 }
-                <a class="topbar-link" asp-area="" asp-page="/Privacy">Privacidad</a>
+             
             </nav>
 
             <partial name="_LoginPartial" />

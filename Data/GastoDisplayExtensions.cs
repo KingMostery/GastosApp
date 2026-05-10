@@ -26,4 +26,21 @@ public static class GastoDisplayExtensions
         CategoriaGasto.Compras => "Compras",
         _ => "Otro"
     };
+
+    public static string ToDisplayName(this FuenteIngreso value) => value switch
+    {
+        FuenteIngreso.Salario => "Salario",
+        FuenteIngreso.Freelance => "Freelance",
+        FuenteIngreso.Negocio => "Negocio",
+        FuenteIngreso.Inversion => "Inversión",
+        FuenteIngreso.Transferencia => "Transferencia",
+        _ => "Otro"
+    };
+
+    public static string ToDisplayName(this EstadoPrestamo value) => value switch
+    {
+        EstadoPrestamo.Pendiente => "Pendiente",
+        EstadoPrestamo.Devuelto => "Devuelto",
+        _ => "Desconocido"
+    };
 }

@@ -73,6 +73,37 @@ using (var scope = app.Services.CreateScope())
 
     dbContext.Database.ExecuteSqlRaw(
         @"CREATE INDEX IF NOT EXISTS IX_Gastos_UsuarioId ON Gastos (UsuarioId);");
+
+    dbContext.Database.ExecuteSqlRaw(
+        @"CREATE TABLE IF NOT EXISTS Ingresos (
+            Id INTEGER NOT NULL CONSTRAINT PK_Ingresos PRIMARY KEY AUTOINCREMENT,
+            Valor TEXT NOT NULL,
+            Fecha TEXT NOT NULL,
+            Concepto TEXT NOT NULL,
+            Fuente TEXT NOT NULL,
+            Descripcion TEXT NULL,
+            UsuarioId TEXT NOT NULL,
+            CONSTRAINT FK_Ingresos_AspNetUsers_UsuarioId FOREIGN KEY (UsuarioId) REFERENCES AspNetUsers (Id) ON DELETE CASCADE
+        );");
+
+    dbContext.Database.ExecuteSqlRaw(
+        @"CREATE INDEX IF NOT EXISTS IX_Ingresos_UsuarioId ON Ingresos (UsuarioId);");
+
+    dbContext.Database.ExecuteSqlRaw(
+        @"CREATE TABLE IF NOT EXISTS Prestamos (
+            Id INTEGER NOT NULL CONSTRAINT PK_Prestamos PRIMARY KEY AUTOINCREMENT,
+            Monto TEXT NOT NULL,
+            Persona TEXT NOT NULL,
+            FechaPrestamo TEXT NOT NULL,
+            FechaEstimadaDevolucion TEXT NULL,
+            Estado TEXT NOT NULL,
+            Notas TEXT NULL,
+            UsuarioId TEXT NOT NULL,
+            CONSTRAINT FK_Prestamos_AspNetUsers_UsuarioId FOREIGN KEY (UsuarioId) REFERENCES AspNetUsers (Id) ON DELETE CASCADE
+        );");
+
+    dbContext.Database.ExecuteSqlRaw(
+        @"CREATE INDEX IF NOT EXISTS IX_Prestamos_UsuarioId ON Prestamos (UsuarioId);");
 }
 
 // 🔹 Pipeline

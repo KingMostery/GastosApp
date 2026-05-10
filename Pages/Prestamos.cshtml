@@ -1,0 +1,231 @@
+@page
+@model GastosApp.Pages.PrestamosModel
+@using GastosApp.Data
+@{
+    ViewData["Title"] = "Préstamos";
+}
+
+<section class="dashboard-stack">
+
+    <div class="dashboard-header">
+        <div>
+            <span class="hero-badge">Módulo de préstamos</span>
+            <h1 class="page-title mt-3">Mis Préstamos</h1>
+            <p class="page-subtitle">Lleva el control del dinero que has prestado y cuándo esperas recibirlo de vuelta.</p>
+        </div>
+        <div class="action-row">
+            <a asp-page="/Dashboard" class="btn-soft">← Dashboard</a>
+        </div>
+    </div>
+
+    @* Totales *@
+    <section class="stats-grid">
+        <article class="metric-box metric-box-warn mb-0">
+            <div class="label">Pendiente por cobrar</div>
+            <div class="value">@Model.TotalPendiente.ToString("C")</div>
+        </article>
+        <article class="metric-box mb-0">
+            <div class="label">Préstamos pendientes</div>
+            <div class="value">@Model.PrestamosPendientes.Count</div>
+        </article>
+        <article class="metric-box mb-0">
+            <div class="label">Total registrados</div>
+            <div class="value">@Model.Prestamos.Count</div>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+
+        @* Formulario nuevo *@
+        <article class="content-card mb-0">
+            <div class="section-head">
+                <div>
+                    <h2 class="section-title">Registrar préstamo nuevo</h2>
+                    <p class="section-text">Guarda el monto, la persona y la fecha estimada de devolución.</p>
+                </div>
+            </div>
+
+            <form method="post" class="expense-form">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="expense-grid expense-grid-2">
+                    <div>
+                        <label asp-for="Input.Monto" class="form-label">Monto prestado</label>
+                        <input asp-for="Input.Monto" class="form-control" placeholder="50000" />
+                        <span asp-validation-for="Input.Monto" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Persona" class="form-label">Persona</label>
+                        <input asp-for="Input.Persona" class="form-control"
+                               placeholder="Nombre de quien recibe el préstamo" />
+                        <span asp-validation-for="Input.Persona" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="expense-grid expense-grid-2">
+                    <div>
+                        <label asp-for="Input.FechaPrestamo" class="form-label">Fecha del préstamo</label>
+                        <input asp-for="Input.FechaPrestamo" class="form-control" />
+                        <span asp-validation-for="Input.FechaPrestamo" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.FechaEstimadaDevolucion" class="form-label">Posible devolución (opcional)</label>
+                        <input asp-for="Input.FechaEstimadaDevolucion" class="form-control" type="date" />
+                        <span asp-validation-for="Input.FechaEstimadaDevolucion" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label asp-for="Input.Notas" class="form-label">Notas (opcional)</label>
+                    <input asp-for="Input.Notas" class="form-control"
+                           placeholder="Ej: para arriendo, emergencia médica" />
+                    <span asp-validation-for="Input.Notas" class="text-danger"></span>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn-brand">Guardar préstamo</button>
+                </div>
+            </form>
+        </article>
+
+        @* Resumen lateral *@
+        <article class="content-card mb-0">
+            <div class="section-head">
+                <div>
+                    <h2 class="section-title">Resultado actual</h2>
+                    <p class="section-text">@Model.Prestamos.Count préstamo(s) registrados.</p>
+                </div>
+            </div>
+
+            <div class="metric-box metric-box-warn mb-0">
+                <div class="label">Total pendiente</div>
+                <div class="value">@Model.TotalPendiente.ToString("C")</div>
+            </div>
+        </article>
+    </section>
+
+    @* Listado *@
+    <article class="content-card mb-0">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Listado de préstamos</h2>
+                <p class="section-text">Revisa todos los préstamos y marca cuando sean devueltos.</p>
+            </div>
+        </div>
+
+        @if (Model.Prestamos.Count == 0)
+        {
+            <p class="empty-state">No hay préstamos registrados aún.</p>
+        }
+        else
+        {
+            <div class="recent-list">
+                @foreach (var item in Model.Prestamos)
+                {
+                    var isVencido = item.FechaEstimadaDevolucion.HasValue
+                        && item.FechaEstimadaDevolucion.Value.Date < DateTime.Today
+                        && item.Estado == EstadoPrestamo.Pendiente;
+
+                    @if (Model.EditInput.Id == item.Id)
+                    {
+                        <form method="post" asp-page-handler="Actualizar" class="recent-item recent-item-edit">
+                            <input type="hidden" asp-for="EditInput.Id" />
+
+                            <div class="expense-grid">
+                                <div class="expense-grid expense-grid-2">
+                                    <div>
+                                        <label asp-for="EditInput.Monto" class="form-label">Monto</label>
+                                        <input asp-for="EditInput.Monto" class="form-control" />
+                                        <span asp-validation-for="EditInput.Monto" class="text-danger"></span>
+                                    </div>
+                                    <div>
+                                        <label asp-for="EditInput.Persona" class="form-label">Persona</label>
+                                        <input asp-for="EditInput.Persona" class="form-control" />
+                                        <span asp-validation-for="EditInput.Persona" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="expense-grid expense-grid-2">
+                                    <div>
+                                        <label asp-for="EditInput.FechaPrestamo" class="form-label">Fecha préstamo</label>
+                                        <input asp-for="EditInput.FechaPrestamo" class="form-control" />
+                                        <span asp-validation-for="EditInput.FechaPrestamo" class="text-danger"></span>
+                                    </div>
+                                    <div>
+                                        <label asp-for="EditInput.FechaEstimadaDevolucion" class="form-label">Posible devolución</label>
+                                        <input asp-for="EditInput.FechaEstimadaDevolucion" class="form-control" />
+                                        <span asp-validation-for="EditInput.FechaEstimadaDevolucion" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label asp-for="EditInput.Notas" class="form-label">Notas</label>
+                                    <input asp-for="EditInput.Notas" class="form-control" />
+                                    <span asp-validation-for="EditInput.Notas" class="text-danger"></span>
+                                </div>
+
+                                <div class="row-actions">
+                                    <button type="submit" class="btn-brand">Guardar cambios</button>
+                                    <a asp-page="/Prestamos" class="btn-soft">Cancelar</a>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="recent-item @(isVencido ? "row-vencido" : "")">
+                            <div>
+                                <strong>@item.Persona</strong>
+                                <div class="section-text">
+                                    Prestado el @item.FechaPrestamo.ToString("dd/MM/yyyy")
+                                    @if (item.FechaEstimadaDevolucion.HasValue)
+                                    {
+                                        <span> &middot; Devolver ~@item.FechaEstimadaDevolucion.Value.ToString("dd/MM/yyyy")</span>
+                                    }
+                                    &middot; <span class="estado-badge estado-@item.Estado.ToString().ToLower()">@item.Estado.ToDisplayName()</span>
+                                    @if (isVencido)
+                                    {
+                                        <span class="vencido-tag"> &middot; Vencido</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(item.Notas))
+                                {
+                                    <div class="recent-note">@item.Notas</div>
+                                }
+                            </div>
+
+                            <div class="recent-actions">
+                                <div class="category-total">@item.Monto.ToString("C")</div>
+                                <div class="row-actions">
+                                    @if (item.Estado == EstadoPrestamo.Pendiente)
+                                    {
+                                        <form method="post" asp-page-handler="MarcarDevuelto">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn-soft done-btn" title="Marcar como devuelto">✔ Devuelto</button>
+                                        </form>
+                                    }
+
+                                    <form method="post" asp-page-handler="Editar">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn-soft">Editar</button>
+                                    </form>
+
+                                    <form method="post" asp-page-handler="Eliminar"
+                                          onsubmit="return confirm('Deseas eliminar este prestamo?');">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn-danger">Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </article>
+
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

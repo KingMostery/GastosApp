@@ -1,0 +1,211 @@
+@page
+@model GastosApp.Pages.IngresosModel
+@using GastosApp.Data
+@{
+    ViewData["Title"] = "Ingresos";
+}
+
+<section class="dashboard-stack">
+
+    <div class="dashboard-header">
+        <div>
+            <span class="hero-badge">Módulo de ingresos</span>
+            <h1 class="page-title mt-3">Mis Ingresos</h1>
+            <p class="page-subtitle">Registra tus entradas de dinero para calcular tu balance real.</p>
+        </div>
+        <div class="action-row">
+            <a asp-page="/Dashboard" class="btn-soft">← Dashboard</a>
+        </div>
+    </div>
+
+    @* Totales *@
+    <section class="stats-grid">
+        <article class="metric-box metric-box-income mb-0">
+            <div class="label">Ingresos este mes</div>
+            <div class="value">@Model.TotalMes.ToString("C")</div>
+        </article>
+        <article class="metric-box mb-0">
+            <div class="label">Total registrado</div>
+            <div class="value">@Model.TotalGeneral.ToString("C")</div>
+        </article>
+        <article class="metric-box mb-0">
+            <div class="label">Movimientos</div>
+            <div class="value">@Model.Ingresos.Count</div>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+
+        @* Formulario nuevo *@
+        <article class="content-card mb-0">
+            <div class="section-head">
+                <div>
+                    <h2 class="section-title">Registrar ingreso nuevo</h2>
+                    <p class="section-text">Guarda un ingreso con los datos básicos para llevar control de tu dinero.</p>
+                </div>
+            </div>
+
+            <form method="post" class="expense-form">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="expense-grid expense-grid-2">
+                    <div>
+                        <label asp-for="Input.Valor" class="form-label">Valor</label>
+                        <input asp-for="Input.Valor" class="form-control" placeholder="125000" />
+                        <span asp-validation-for="Input.Valor" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Fecha" class="form-label">Fecha</label>
+                        <input asp-for="Input.Fecha" class="form-control" />
+                        <span asp-validation-for="Input.Fecha" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="expense-grid expense-grid-2">
+                    <div>
+                        <label asp-for="Input.Concepto" class="form-label">Concepto</label>
+                        <input asp-for="Input.Concepto" class="form-control"
+                               placeholder="Ej: Sueldo quincenal, Pago freelance" />
+                        <span asp-validation-for="Input.Concepto" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Input.Fuente" class="form-label">Fuente</label>
+                        <select asp-for="Input.Fuente" asp-items="Html.GetEnumSelectList<FuenteIngreso>()"
+                                class="form-select"></select>
+                        <span asp-validation-for="Input.Fuente" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label asp-for="Input.Descripcion" class="form-label">Descripción (opcional)</label>
+                    <input asp-for="Input.Descripcion" class="form-control"
+                           placeholder="Ej: bono de fin de año, proyecto web" />
+                    <span asp-validation-for="Input.Descripcion" class="text-danger"></span>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn-brand">Guardar ingreso</button>
+                </div>
+            </form>
+        </article>
+
+        @* Resumen lateral *@
+        <article class="content-card mb-0">
+            <div class="section-head">
+                <div>
+                    <h2 class="section-title">Resultado actual</h2>
+                    <p class="section-text">@Model.Ingresos.Count movimiento(s) registrados.</p>
+                </div>
+            </div>
+
+            <div class="metric-box metric-box-income mb-0">
+                <div class="label">Total general</div>
+                <div class="value">@Model.TotalGeneral.ToString("C")</div>
+            </div>
+        </article>
+    </section>
+
+    @* Listado *@
+    <article class="content-card mb-0">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title">Historial de ingresos</h2>
+                <p class="section-text">Revisa todos tus ingresos registrados y haz cambios si lo necesitas.</p>
+            </div>
+        </div>
+
+        @if (Model.Ingresos.Count == 0)
+        {
+            <p class="empty-state">No hay ingresos registrados aún.</p>
+        }
+        else
+        {
+            <div class="recent-list">
+                @foreach (var item in Model.Ingresos)
+                {
+                    @if (Model.EditInput.Id == item.Id)
+                    {
+                        <form method="post" asp-page-handler="Actualizar" class="recent-item recent-item-edit">
+                            <input type="hidden" asp-for="EditInput.Id" />
+
+                            <div class="expense-grid">
+                                <div class="expense-grid expense-grid-2">
+                                    <div>
+                                        <label asp-for="EditInput.Valor" class="form-label">Valor</label>
+                                        <input asp-for="EditInput.Valor" class="form-control" />
+                                        <span asp-validation-for="EditInput.Valor" class="text-danger"></span>
+                                    </div>
+                                    <div>
+                                        <label asp-for="EditInput.Fecha" class="form-label">Fecha</label>
+                                        <input asp-for="EditInput.Fecha" class="form-control" />
+                                        <span asp-validation-for="EditInput.Fecha" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="expense-grid expense-grid-2">
+                                    <div>
+                                        <label asp-for="EditInput.Concepto" class="form-label">Concepto</label>
+                                        <input asp-for="EditInput.Concepto" class="form-control" />
+                                        <span asp-validation-for="EditInput.Concepto" class="text-danger"></span>
+                                    </div>
+                                    <div>
+                                        <label asp-for="EditInput.Fuente" class="form-label">Fuente</label>
+                                        <select asp-for="EditInput.Fuente"
+                                                asp-items="Html.GetEnumSelectList<FuenteIngreso>()"
+                                                class="form-select"></select>
+                                        <span asp-validation-for="EditInput.Fuente" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label asp-for="EditInput.Descripcion" class="form-label">Descripción</label>
+                                    <input asp-for="EditInput.Descripcion" class="form-control" />
+                                    <span asp-validation-for="EditInput.Descripcion" class="text-danger"></span>
+                                </div>
+
+                                <div class="row-actions">
+                                    <button type="submit" class="btn-brand">Guardar cambios</button>
+                                    <a asp-page="/Ingresos" class="btn-soft">Cancelar</a>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="recent-item">
+                            <div>
+                                <strong>@item.Concepto</strong>
+                                <div class="section-text">@item.Fuente.ToDisplayName() - @item.Fecha.ToString("dd/MM/yyyy")</div>
+                                @if (!string.IsNullOrWhiteSpace(item.Descripcion))
+                                {
+                                    <div class="recent-note">@item.Descripcion</div>
+                                }
+                            </div>
+
+                            <div class="recent-actions">
+                                <div class="category-total income-text">+@item.Valor.ToString("C")</div>
+                                <div class="row-actions">
+                                    <form method="post" asp-page-handler="Editar">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn-soft">Editar</button>
+                                    </form>
+
+                                    <form method="post" asp-page-handler="Eliminar"
+                                          onsubmit="return confirm('Deseas eliminar este ingreso?');">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn-danger">Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </article>
+
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

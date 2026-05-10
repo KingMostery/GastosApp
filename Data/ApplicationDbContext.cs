@@ -11,6 +11,8 @@ namespace GastosApp.Data
         }
 
         public DbSet<Gasto> Gastos => Set<Gasto>();
+        public DbSet<Ingreso> Ingresos => Set<Ingreso>();
+        public DbSet<Prestamo> Prestamos => Set<Prestamo>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -30,6 +32,26 @@ namespace GastosApp.Data
                 entity.HasOne(gasto => gasto.Usuario)
                     .WithMany()
                     .HasForeignKey(gasto => gasto.UsuarioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Ingreso>(entity =>
+            {
+                entity.Property(i => i.Valor).HasPrecision(18, 2);
+                entity.Property(i => i.Fuente).HasConversion<string>();
+                entity.HasOne(i => i.Usuario)
+                    .WithMany()
+                    .HasForeignKey(i => i.UsuarioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Prestamo>(entity =>
+            {
+                entity.Property(p => p.Monto).HasPrecision(18, 2);
+                entity.Property(p => p.Estado).HasConversion<string>();
+                entity.HasOne(p => p.Usuario)
+                    .WithMany()
+                    .HasForeignKey(p => p.UsuarioId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
         }
