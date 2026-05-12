@@ -68,8 +68,7 @@ public class DashboardModel : PageModel
 
     // ── Gamificación ──────────────────────────────────────────────────────────
     public int PuntajeFinanciero { get; private set; }
-    public int RachaAhorro { get; private set; }
-    public List<Logro> Logros { get; private set; } = [];
+    public int RachaAhorro { get; private set; }    public bool SinDatosGamificacion { get; private set; }    public List<Logro> Logros { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -174,28 +173,46 @@ public class DashboardModel : PageModel
         DateTime hoy)
     {
         // ── Racha de ahorro ───────────────────────────────────────────────────
-        // Días consecutivos (hacia atrás desde ayer) donde gastos del día <= presupuesto diario
-        decimal presupuestoDiario = IngresosMes > 0 && diasTotalesMes > 0
-            ? IngresosMes / diasTotalesMes
-            : (PromedioDiario > 0 ? PromedioDiario * 1.2m : 0);
+        // Sin actividad alguna → racha = 0 (evita contar días vacíos como "en racha")
+        bool sinActividad = todosGastos.Count == 0 && IngresosMes == 0 && PrestamosPendientesList.Count == 0;
+        SinDatosGamificacion = sinActividad;
 
-        var gastosPorDia = gastosMesActual
-            .GroupBy(g => g.Fecha.Date)
-            .ToDictionary(g => g.Key, g => g.Sum(x => x.Valor));
-
-        int racha = 0;
-        for (int d = hoy.Day; d >= 1; d--)
+        if (!sinActividad && (gastosMesActual.Count > 0 || IngresosMes > 0))
         {
-            var fecha = new DateTime(hoy.Year, hoy.Month, d);
-            var gastadoDia = gastosPorDia.ContainsKey(fecha) ? gastosPorDia[fecha] : 0;
-            if (presupuestoDiario == 0 ? gastadoDia == 0 : gastadoDia <= presupuestoDiario)
-                racha++;
-            else
-                break;
+            decimal presupuestoDiario = IngresosMes > 0 && diasTotalesMes > 0
+                ? IngresosMes / diasTotalesMes
+                : (PromedioDiario > 0 ? PromedioDiario * 1.2m : 0);
+
+            var gastosPorDia = gastosMesActual
+                .GroupBy(g => g.Fecha.Date)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Valor));
+
+            int racha = 0;
+            for (int d = hoy.Day; d >= 1; d--)
+            {
+                var fecha = new DateTime(hoy.Year, hoy.Month, d);
+                var gastadoDia = gastosPorDia.ContainsKey(fecha) ? gastosPorDia[fecha] : 0;
+                if (presupuestoDiario == 0 ? gastadoDia == 0 : gastadoDia <= presupuestoDiario)
+                    racha++;
+                else
+                    break;
+            }
+            RachaAhorro = racha;
         }
-        RachaAhorro = racha;
+        else
+        {
+            RachaAhorro = 0;
+        }
 
         // ── Puntuación financiera (0-100) ────────────────────────────────────
+        // Usuario sin ningún dato → puntaje 0, no tiene sentido calcular
+        if (sinActividad)
+        {
+            PuntajeFinanciero = 0;
+            Logros = BuildLogros(todosGastos);
+            return;
+        }
+
         int score = 0;
 
         // 1. Tasa de ahorro del mes: hasta 35 pts
@@ -208,8 +225,8 @@ public class DashboardModel : PageModel
             _    => 0
         };
 
-        // 2. Sin préstamos vencidos: 20 pts
-        if (PrestamosVencidos.Count == 0) score += 20;
+        // 2. Sin préstamos vencidos: 20 pts (solo si el usuario tiene préstamos activos)
+        if (PrestamosPendientesList.Count > 0 && PrestamosVencidos.Count == 0) score += 20;
 
         // 3. Proyección dentro del ingreso del mes: 20 pts
         if (IngresosMes > 0 && ProyeccionMes <= IngresosMes) score += 20;
@@ -227,7 +244,10 @@ public class DashboardModel : PageModel
         PuntajeFinanciero = Math.Min(score, 100);
 
         // ── Logros ────────────────────────────────────────────────────────────
-        Logros =
+        Logros = BuildLogros(todosGastos);
+    }
+
+    private List<Logro> BuildLogros(List<Gasto> todosGastos) =>
         [
             new Logro
             {
@@ -262,7 +282,7 @@ public class DashboardModel : PageModel
                 Icono = "🏆",
                 Nombre = "Sin deudas urgentes",
                 Descripcion = "No tienes préstamos vencidos",
-                Desbloqueado = PrestamosVencidos.Count == 0
+                Desbloqueado = PrestamosPendientesList.Count > 0 && PrestamosVencidos.Count == 0
             },
             new Logro
             {
@@ -286,7 +306,6 @@ public class DashboardModel : PageModel
                 Desbloqueado = PuntajeFinanciero >= 80
             },
         ];
-    }
 
     public class CategoriaResumen
     {

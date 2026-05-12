@@ -1,0 +1,7 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/ffb42f8a-9ffa-440e-85c8-3e1a9a4a4a83/resourceGroups/DefaultResourceGroup-EUS/providers/Microsoft.Web/sites/appgasly",
+    "appService.deploySubpath": "publish",
+    "chat.tools.terminal.autoApprove": {
+        "dotnet build": true
+    }
+}

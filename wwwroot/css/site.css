@@ -979,6 +979,7 @@ a:hover {
 .score-fill.score-green  { stroke: #1b8f62; }
 .score-fill.score-orange { stroke: #d97706; }
 .score-fill.score-red    { stroke: #b33c3c; }
+.score-fill.score-gray   { stroke: var(--border); }
 
 .score-text {
   fill: var(--ink);

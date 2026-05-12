@@ -337,10 +337,12 @@
             @* Score *@
             <article class="content-card mb-0 gami-score-card">
                 @{
-                    var scoreColor = Model.PuntajeFinanciero >= 80 ? "score-green"
+                    var scoreColor = Model.SinDatosGamificacion ? "score-gray"
+                                   : Model.PuntajeFinanciero >= 80 ? "score-green"
                                    : Model.PuntajeFinanciero >= 50 ? "score-orange"
                                    : "score-red";
-                    var scoreLabel = Model.PuntajeFinanciero >= 80 ? "Excelente 🏆"
+                    var scoreLabel = Model.SinDatosGamificacion ? "Sin datos aún 📊"
+                                   : Model.PuntajeFinanciero >= 80 ? "Excelente 🏆"
                                    : Model.PuntajeFinanciero >= 60 ? "Bueno 👍"
                                    : Model.PuntajeFinanciero >= 40 ? "Puede mejorar"
                                    : "Necesita atención ⚠️";
@@ -358,7 +360,14 @@
                 </div>
                 <div class="gami-score-tag">@scoreLabel</div>
                 <div class="gami-score-hint">
-                    Basado en ahorro, proyección,<br />préstamos y racha del mes
+                    @if (Model.SinDatosGamificacion)
+                    {
+                        <span>Registra gastos e ingresos<br />para ver tu puntuación</span>
+                    }
+                    else
+                    {
+                        <span>Basado en ahorro, proyección,<br />préstamos y racha del mes</span>
+                    }
                 </div>
             </article>
 
@@ -368,7 +377,11 @@
                 <div class="gami-racha-num">@Model.RachaAhorro</div>
                 <div class="gami-racha-label">días en racha</div>
                 <div class="gami-racha-sub">
-                    @if (Model.RachaAhorro == 0)
+                    @if (Model.SinDatosGamificacion)
+                    {
+                        <span>Empieza a registrar para activar la racha</span>
+                    }
+                    else if (Model.RachaAhorro == 0)
                     {
                         <span>Hoy superaste el presupuesto diario</span>
                     }
